@@ -29,6 +29,7 @@
         var startButtonDiv = document.createElement("div");
         var startButton = document.createElement("Button");
         var startButtonLabel = document.createTextNode("Play Snake");
+        startButtonDiv.style.clear = "left";
         startButtonDiv.appendChild(startButton);
         startButton.appendChild(startButtonLabel);
         startButton.classList.add("btn");
