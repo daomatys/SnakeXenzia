@@ -11,11 +11,11 @@
 (function() {
     'use strict';
 
-    function completeField() {
-        var topRightCell = document.querySelector('[x="-39"][y="0"].day');
-        var rightColumn = topRightCell.parentElement;
+    function completeField(rects) {
+        var rightColumn = rects[rects.length - 1].parentElement;
+        var rightColumnInitSize = rightColumn.children.length;
         var rightColumnSize = rightColumn.children.length;
-        while (rightColumnSize < 7) {
+        while (rightColumnSize < 7 + rightColumnInitSize / 2) {
             var rect = rightColumn.children[rightColumnSize - 1].cloneNode();
             rect.setAttribute("y", parseInt(rect.getAttribute("y")) + 12);
             rect.setAttribute("data-count", 0);
@@ -25,7 +25,22 @@
         }
     }
 
-    function drawStartButton() {
+    function hideAll(rects) {
+        for (var i = 0; i < rects.length; i++)
+            rects[i].style.display = "none";
+    }
+
+    function duplicateAll(rects) {
+        var fakes = [];
+        for (var i = 0; i < rects.length; i++) {
+            fakes[i] = rects[i].cloneNode();
+            fakes[i].className.baseVal = "day2";
+            rects[i].parentElement.appendChild(fakes[i]);
+        }
+        return fakes;
+    }
+
+    function drawStartButton(activityGraph) {
         var startButtonDiv = document.createElement("div");
         var startButton = document.createElement("Button");
         var startButtonLabel = document.createTextNode("Play Snake");
@@ -39,7 +54,10 @@
 
     var activityGraph = document.getElementsByClassName("js-contribution-graph");
     if (activityGraph.length > 0) {
-        drawStartButton();
-        completeField();
+        drawStartButton(activityGraph);
+        var realRects = document.getElementsByClassName("day");
+        var fakeRects = duplicateAll(realRects);
+        hideAll(realRects);
+        completeField(fakeRects);
     }
 })();
