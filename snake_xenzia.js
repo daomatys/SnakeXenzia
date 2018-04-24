@@ -89,19 +89,29 @@
 
     function keyboardArrowsCallback(e) {
         switch (e.keyCode) {
-        case 37:
-            alert('left');
-            break;
-        case 38:
-            alert('up');
-            break;
-        case 39:
-            alert('right');
-            break;
-        case 40:
-            alert('down');
-            break;
+            case 37:
+                moveSnake = -7; //left
+                break;
+            case 38:
+                moveSnake = -1; //up
+                break;
+            case 39:
+                moveSnake = 7; //right
+                break;
+            case 40:
+                moveSnake = 1; //down
+                break;
         }
+    }
+
+    function movementSnake() {
+        goSnake += moveSnake;
+        fakeRects[prevSnake].style.fill = "#ebedf0";
+        fakeRects[goSnake].style.fill = "#24292e";
+        if(fakeRects[goSnake].getAttribute("data-count") > 0) {
+            sizeSnake++;
+        }
+        prevSnake = goSnake;
     }
 
     var activityGraph = document.getElementsByClassName("js-contribution-graph");
@@ -114,5 +124,7 @@
         var fakeRects = duplicateAll(realRects);
         hideAll(fakeRects);
         completeField(fakeRects);
+        var goSnake = 0, moveSnake = 0, prevSnake = 0;
+        window.setInterval(movementSnake, 200);
     }
 })();
