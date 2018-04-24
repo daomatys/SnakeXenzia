@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Snake Xenzia on Github
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/daomatys/SnakeXenzia
 // @version      0.1
 // @description  Github activity graph based game "Snake Xenzia"
 // @author       daomatys, oxore
@@ -67,38 +67,42 @@
         if (gameState == "off") {
             hideAll(realRects);
             showAll(fakeRects);
+            window.addEventListener("keydown", preventDefaultArrows, false);
+            document.onkeydown = keyboardArrowsCallback;
             startButton.innerText = "Turn Off";
             gameState = "on";
         } else {
             hideAll(fakeRects);
             showAll(realRects);
+            window.removeEventListener("keydown", preventDefaultArrows, false);
+            document.onkeydown = 0;
             startButton.innerText = "Play Snake";
             gameState = "off";
         }
     }
 
-    window.addEventListener("keydown", function(e) {
-    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
-        e.preventDefault();
+    function preventDefaultArrows(e) {
+        if([37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+            e.preventDefault();
+        }
     }
-    }, false);
 
-    document.onkeydown = function(e) {
+    function keyboardArrowsCallback(e) {
         switch (e.keyCode) {
-            case 37:
-                alert('left');
-                break;
-            case 38:
-                alert('up');
-                break;
-            case 39:
-                alert('right');
-                break;
-            case 40:
-                alert('down');
-                break;
-            }
-        };
+        case 37:
+            alert('left');
+            break;
+        case 38:
+            alert('up');
+            break;
+        case 39:
+            alert('right');
+            break;
+        case 40:
+            alert('down');
+            break;
+        }
+    }
 
     var activityGraph = document.getElementsByClassName("js-contribution-graph");
     if (activityGraph.length > 0) {
