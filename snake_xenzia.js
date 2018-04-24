@@ -91,16 +91,20 @@
     function keyboardArrowsCallback(e) {
         switch (e.keyCode) {
             case 37:
-                moveSnake = -7; //left
+                if (moveSnake != 7)
+                    moveSnake = -7; //left
                 break;
             case 38:
-                moveSnake = -1; //up
+                if (moveSnake != 1)
+                    moveSnake = -1; //up
                 break;
             case 39:
-                moveSnake = 7; //right
+                if (moveSnake != -7)
+                    moveSnake = 7; //right
                 break;
             case 40:
-                moveSnake = 1; //down
+                if (moveSnake != -1)
+                    moveSnake = 1; //down
                 break;
         }
     }
@@ -110,13 +114,25 @@
         e.target.style.fill = "rgb(35, 154, 59)";
     }
 
+    function expandSnake() {
+
+    }
+
     function movementSnake() {
         goSnake += moveSnake;
+        if ((prevSnake + 1) % 7 == 0 && (goSnake + 7) % 7 == 0)
+            goSnake -= 7;
+        if ((goSnake + 1) % 7 == 0 && (prevSnake + 7) % 7 == 0)
+            goSnake += 7;
+        if ((goSnake < 0 && prevSnake < 7))
+            goSnake += 371;
+        if (goSnake > 370 && prevSnake > 363)
+            goSnake -= 371;
         fakeRects[prevSnake].style.fill = "#ebedf0";
         fakeRects[goSnake].style.fill = "#24292e";
-        if(fakeRects[goSnake].getAttribute("data-count") > 0) {
-            sizeSnake++;
-        }
+        //if(fakeRects[goSnake].getAttribute("data-count") > 0) {
+        //    sizeSnake++;
+        //}
         prevSnake = goSnake;
     }
 
@@ -131,6 +147,6 @@
         hideAll(fakeRects);
         completeField(fakeRects);
         var goSnake = 0, moveSnake = 0, prevSnake = 0;
-        window.setInterval(movementSnake, 200);
+        window.setInterval(movementSnake, 150);
     }
 })();
