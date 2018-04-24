@@ -77,6 +77,29 @@
         }
     }
 
+    window.addEventListener("keydown", function(e) {
+    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        e.preventDefault();
+    }
+    }, false);
+
+    document.onkeydown = function(e) {
+        switch (e.keyCode) {
+            case 37:
+                alert('left');
+                break;
+            case 38:
+                alert('up');
+                break;
+            case 39:
+                alert('right');
+                break;
+            case 40:
+                alert('down');
+                break;
+            }
+        };
+
     var activityGraph = document.getElementsByClassName("js-contribution-graph");
     if (activityGraph.length > 0) {
         var gameState = "off";
