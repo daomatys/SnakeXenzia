@@ -108,6 +108,10 @@
         }
     }
 
+    function expandSnake() {
+
+    }
+
     function movementSnake() {
         goSnake += moveSnake;
         if ((prevSnake + 1) % 7 == 0 && (goSnake + 7) % 7 == 0)
@@ -116,13 +120,13 @@
             goSnake += 7;
         if ((goSnake < 0 && prevSnake < 7))
             goSnake += 371;
-        if (goSnake > 371 && prevSnake > 364)
+        if (goSnake > 370 && prevSnake > 363)
             goSnake -= 371;
         fakeRects[prevSnake].style.fill = "#ebedf0";
         fakeRects[goSnake].style.fill = "#24292e";
-        if(fakeRects[goSnake].getAttribute("data-count") > 0) {
-            sizeSnake++;
-        }
+        //if(fakeRects[goSnake].getAttribute("data-count") > 0) {
+        //    sizeSnake++;
+        //}
         prevSnake = goSnake;
     }
 
