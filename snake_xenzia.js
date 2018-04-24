@@ -42,6 +42,7 @@
             fakes[i] = rects[i].cloneNode();
             fakes[i].className.baseVal = "dayfake";
             rects[i].parentElement.appendChild(fakes[i]);
+            fakes[i].addEventListener("click", cellClickHandler, false);
         }
         return fakes;
     }
@@ -106,6 +107,11 @@
                     moveSnake = 1; //down
                 break;
         }
+    }
+
+    function cellClickHandler(e) {
+        e.target.attributes.datacount++;
+        e.target.style.fill = "rgb(35, 154, 59)";
     }
 
     function expandSnake() {
