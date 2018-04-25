@@ -114,12 +114,7 @@
         e.target.style.fill = "rgb(35, 154, 59)";
     }
 
-    function expandSnake() {
-
-    }
-
-    function movementSnake() {
-        goSnake += moveSnake;
+    function checkPortalBorder() {
         if ((prevSnake + 1) % 7 == 0 && (goSnake + 7) % 7 == 0)
             goSnake -= 7;
         if ((goSnake + 1) % 7 == 0 && (prevSnake + 7) % 7 == 0)
@@ -128,12 +123,23 @@
             goSnake += 371;
         if (goSnake > 370 && prevSnake > 363)
             goSnake -= 371;
-        fakeRects[prevSnake].style.fill = "#ebedf0";
-        fakeRects[goSnake].style.fill = "#24292e";
-        //if(fakeRects[goSnake].getAttribute("data-count") > 0) {
-        //    sizeSnake++;
-        //}
-        prevSnake = goSnake;
+    }
+
+    function movementSnake() {
+        if (snakeBiteMyself)
+            switchGameState();
+        else {
+            prevSnake = goSnake;
+            goSnake += moveSnake;
+            checkPortalBorder();
+            if(fakeRects[goSnake].getAttribute("data-count") > 0)
+                hugeSnake.push();
+            if(fakeRects[goSnake].getAttribute("data-count") == -1 && moveSnake != 0)
+                snakeBiteMyself = true;
+            fakeRects[goSnake].style.fill = "#24292e";
+            fakeRects[goSnake].setAttribute("data-count", -1);
+            //fakeRects[prevSnake].style.fill = "#ebedf0";
+        }
     }
 
     var activityGraph = document.getElementsByClassName("js-contribution-graph");
@@ -146,7 +152,9 @@
         var fakeRects = duplicateAll(realRects);
         hideAll(fakeRects);
         completeField(fakeRects);
+        var hugeSnake = [];
+        var snakeBiteMyself = false;
         var goSnake = 0, moveSnake = 0, prevSnake = 0;
         window.setInterval(movementSnake, 150);
-    }
+        }
 })();
