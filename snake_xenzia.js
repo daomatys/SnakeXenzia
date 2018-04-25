@@ -49,7 +49,7 @@
 
     function createStartButton() {
         var startButton = document.createElement("Button");
-        var startButtonLabel = document.createTextNode("Play Snake");
+        var startButtonLabel = document.createTextNode("Look for the Snake...");
         startButton.appendChild(startButtonLabel);
         startButton.classList.add("btn");
         startButton.id = "startButton";
@@ -70,14 +70,14 @@
             showAll(fakeRects);
             window.addEventListener("keydown", preventDefaultArrows, false);
             document.onkeydown = keyboardArrowsCallback;
-            startButton.innerText = "Turn Off";
+            startButton.innerText = "I'm done";
             gameState = "on";
         } else {
             hideAll(fakeRects);
             showAll(realRects);
             window.removeEventListener("keydown", preventDefaultArrows, false);
             document.onkeydown = 0;
-            startButton.innerText = "Play Snake";
+            startButton.innerText = "I'm dead";
             gameState = "off";
         }
     }
@@ -114,7 +114,7 @@
         e.target.style.fill = "rgb(35, 154, 59)";
     }
 
-    function checkPortalBorder() {
+    function borderTeleporter() {
         if ((prevSnake + 1) % 7 == 0 && (goSnake + 7) % 7 == 0)
             goSnake -= 7;
         if ((goSnake + 1) % 7 == 0 && (prevSnake + 7) % 7 == 0)
@@ -124,25 +124,28 @@
         if (goSnake > 370 && prevSnake > 363)
             goSnake -= 371;
     }
-    function movementSnake() {
 
-        if(fakeRects[goSnake].getAttribute("data-count") > 0)
+    function segmentSnake() {
+        fakeRects[goSnake].style.fill = "#e6af4b";
+        fakeRects[goSnake].setAttribute("data-count", -1); //wandering
+        //fakeRects[prevSnake].style.fill = "#ebedf0";
+    }
+
+    function movementSnake() {
+        if(fakeRects[goSnake].getAttribute("data-count") > 0) //yummy!
             hugeSnake.push();
-        if(fakeRects[goSnake].getAttribute("data-count") == -1 && moveSnake != 0) {
-            snakeBiteMyself = true;
+        if(fakeRects[goSnake].getAttribute("data-count") == -1 && moveSnake != 0) { //bloodbath
+            selfHarm = true;
             fakeRects[goSnake].style.fill = "#e05038";
         }
-        else {
-            fakeRects[goSnake].style.fill = "#e6af4b";
-            fakeRects[goSnake].setAttribute("data-count", -1);
-            //fakeRects[prevSnake].style.fill = "#ebedf0";
-        }
+        else
+            segmentSnake();
     }
 
     function actionsSnake() {
-        if (snakeBiteMyself){
+        if (selfHarm) {
             fakeRects[goSnake].style.fill = "#ebedf0";
-            if (endPulse++ > 14)
+            if (endPulse++ > 10)
                 var gameState = "off";
             else
                 switchGameState();
@@ -150,7 +153,7 @@
         else {
             prevSnake = goSnake;
             goSnake += moveSnake;
-            checkPortalBorder();
+            borderTeleporter();
             movementSnake();
         }
     }
@@ -166,9 +169,8 @@
         hideAll(fakeRects);
         completeField(fakeRects);
         var hugeSnake = [];
-        var snakeBiteMyself = false;
-        var goSnake = 0, moveSnake = 0, prevSnake = 0;
-        var endPulse = 0;
-        window.setInterval(actionsSnake, 180);
+        var selfHarm = false;
+        var goSnake = 0, moveSnake = 0, prevSnake = 0, endPulse = 0;
+        window.setInterval(actionsSnake, 140);
         }
 })();
