@@ -126,8 +126,12 @@
     }
 
     function movementSnake() {
-        if (snakeBiteMyself)
-            switchGameState();
+        if (snakeBiteMyself){
+            if (endPulse++ > 16)
+                var gameState = "off";
+            else
+                switchGameState();
+        }
         else {
             prevSnake = goSnake;
             goSnake += moveSnake;
@@ -136,7 +140,7 @@
                 hugeSnake.push();
             if(fakeRects[goSnake].getAttribute("data-count") == -1 && moveSnake != 0)
                 snakeBiteMyself = true;
-            fakeRects[goSnake].style.fill = "#24292e";
+            fakeRects[goSnake].style.fill = "#e36209";
             fakeRects[goSnake].setAttribute("data-count", -1);
             //fakeRects[prevSnake].style.fill = "#ebedf0";
         }
@@ -155,6 +159,8 @@
         var hugeSnake = [];
         var snakeBiteMyself = false;
         var goSnake = 0, moveSnake = 0, prevSnake = 0;
-        window.setInterval(movementSnake, 150);
+        var endPulse = 0;
+        window.setInterval(movementSnake, 180);
         }
+
 })();
