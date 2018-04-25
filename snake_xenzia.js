@@ -124,10 +124,25 @@
         if (goSnake > 370 && prevSnake > 363)
             goSnake -= 371;
     }
-
     function movementSnake() {
+
+        if(fakeRects[goSnake].getAttribute("data-count") > 0)
+            hugeSnake.push();
+        if(fakeRects[goSnake].getAttribute("data-count") == -1 && moveSnake != 0) {
+            snakeBiteMyself = true;
+            fakeRects[goSnake].style.fill = "#e05038";
+        }
+        else {
+            fakeRects[goSnake].style.fill = "#e6af4b";
+            fakeRects[goSnake].setAttribute("data-count", -1);
+            //fakeRects[prevSnake].style.fill = "#ebedf0";
+        }
+    }
+
+    function actionsSnake() {
         if (snakeBiteMyself){
-            if (endPulse++ > 16)
+            fakeRects[goSnake].style.fill = "#ebedf0";
+            if (endPulse++ > 14)
                 var gameState = "off";
             else
                 switchGameState();
@@ -136,13 +151,7 @@
             prevSnake = goSnake;
             goSnake += moveSnake;
             checkPortalBorder();
-            if(fakeRects[goSnake].getAttribute("data-count") > 0)
-                hugeSnake.push();
-            if(fakeRects[goSnake].getAttribute("data-count") == -1 && moveSnake != 0)
-                snakeBiteMyself = true;
-            fakeRects[goSnake].style.fill = "#e36209";
-            fakeRects[goSnake].setAttribute("data-count", -1);
-            //fakeRects[prevSnake].style.fill = "#ebedf0";
+            movementSnake();
         }
     }
 
@@ -160,7 +169,6 @@
         var snakeBiteMyself = false;
         var goSnake = 0, moveSnake = 0, prevSnake = 0;
         var endPulse = 0;
-        window.setInterval(movementSnake, 180);
+        window.setInterval(actionsSnake, 180);
         }
-
 })();
