@@ -26,6 +26,11 @@
         }
     }
 
+    function removeAll(rects) {
+        for (var i = 0; i < rects.length; i++)
+            rects[i].remove();
+    }
+
     function hideAll(rects) {
         for (var i = 0; i < rects.length; i++)
             rects[i].style.display = "none";
@@ -49,7 +54,7 @@
 
     function createStartButton() {
         var startButton = document.createElement("Button");
-        var startButtonLabel = document.createTextNode("Look for the Snake...");
+        var startButtonLabel = document.createTextNode("Play Snake");
         startButton.appendChild(startButtonLabel);
         startButton.classList.add("btn");
         startButton.id = "startButton";
@@ -66,24 +71,28 @@
 
     function switchGameState() {
         if (gameState == "off") {
+            fakeRects = duplicateAll(realRects);
+            completeField(fakeRects);
             hideAll(realRects);
-            showAll(fakeRects);
             window.addEventListener("keydown", preventDefaultArrows, false);
             document.onkeydown = keyboardArrowsCallback;
-            startButton.innerText = "I'm done";
+            hugeSnake = []; selfHarm = false; goSnake = 0; moveSnake = 0; prevSnake = 0; endPulse = 0;
+            startButton.innerText = "Turn Off";
+            intervalContainer = window.setInterval(actionsSnake, 140);
             gameState = "on";
         } else {
-            hideAll(fakeRects);
+            removeAll(fakeRects);
             showAll(realRects);
             window.removeEventListener("keydown", preventDefaultArrows, false);
             document.onkeydown = 0;
-            startButton.innerText = "I'm dead";
+            startButton.innerText = "Play Snake";
+            window.clearInterval(intervalContainer);
             gameState = "off";
         }
     }
 
     function preventDefaultArrows(e) {
-        if([37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        if ([37, 38, 39, 40].indexOf(e.keyCode) > -1) {
             e.preventDefault();
         }
     }
@@ -110,7 +119,7 @@
     }
 
     function cellClickHandler(e) {
-        e.target.attributes.datacount++;
+        e.target.setAttribute("data-count", parseInt(e.target.getAttribute("data-count")) + 1);
         e.target.style.fill = "rgb(35, 154, 59)";
     }
 
@@ -132,25 +141,26 @@
     }
 
     function movementSnake() {
-        if(fakeRects[goSnake].getAttribute("data-count") > 0) //yummy!
+        if (fakeRects[goSnake].getAttribute("data-count") > 0) //yummy!
             hugeSnake.push();
-        if(fakeRects[goSnake].getAttribute("data-count") == -1 && moveSnake != 0) { //bloodbath
+        if (fakeRects[goSnake].getAttribute("data-count") == -1 && moveSnake != 0) { //bloodbath
             selfHarm = true;
             fakeRects[goSnake].style.fill = "#e05038";
-        }
-        else
+        } else
             segmentSnake();
     }
 
     function actionsSnake() {
         if (selfHarm) {
             fakeRects[goSnake].style.fill = "#ebedf0";
-            if (endPulse++ > 10)
-                var gameState = "off";
-            else
-                switchGameState();
-        }
-        else {
+            //   TODO: Implement blinking without call a switchGameState()
+            //   function, because it must be called only on startButton
+            //   click event
+            //if (endPulse++ > 10)
+            //    var gameState = "off";
+            //else
+            //    switchGameState();
+        } else {
             prevSnake = goSnake;
             goSnake += moveSnake;
             borderTeleporter();
@@ -164,13 +174,10 @@
         var startButton = createStartButton();
         drawStartButton(startButton, activityGraph);
         startButton.addEventListener("click", switchGameState);
-        var realRects = document.getElementsByClassName("day");
-        var fakeRects = duplicateAll(realRects);
-        hideAll(fakeRects);
-        completeField(fakeRects);
+        var fakeRects, realRects = document.getElementsByClassName("day");
         var hugeSnake = [];
         var selfHarm = false;
         var goSnake = 0, moveSnake = 0, prevSnake = 0, endPulse = 0;
-        window.setInterval(actionsSnake, 140);
-        }
+        var intervalContainer;
+    }
 })();
