@@ -76,10 +76,15 @@
             hideAll(realRects);
             window.addEventListener("keydown", preventDefaultArrows, false);
             document.onkeydown = keyboardArrowsCallback;
-            hugeSnake = []; selfHarm = false; goSnake = 0; moveSnake = 0; prevSnake = 0; endPulse = 0;
             startButton.innerText = "Turn Off";
-            intervalContainer = window.setInterval(actionsSnake, 140);
+            hPos = 0; hWas = 1; hMove = 0; s = [2]; sDeath = false; tPos = 2; tMove = 0;
+            for (i = 2; i >= 0; i--) {
+                fakeRects[i].style.fill = "#e6af4b";
+                fakeRects[i].setAttribute("data-count", -1);
+                }
+            intervalContainer = window.setInterval(sCrawling, 140);
             gameState = "on";
+
         } else {
             removeAll(fakeRects);
             showAll(realRects);
@@ -100,20 +105,24 @@
     function keyboardArrowsCallback(e) {
         switch (e.keyCode) {
             case 37:
-                if (moveSnake != 7)
-                    moveSnake = -7; //left
+                if (hMove != 7) {
+                    hMove = -7; //left
+                    fakeRects[hPos].setAttribute("data-count", -4); }
                 break;
             case 38:
-                if (moveSnake != 1)
-                    moveSnake = -1; //up
+                if (hMove != 1) {
+                    hMove = -1; //up
+                    fakeRects[hPos].setAttribute("data-count", -1); }
                 break;
             case 39:
-                if (moveSnake != -7)
-                    moveSnake = 7; //right
+                if (hMove != -7) {
+                    hMove = 7; //right
+                    fakeRects[hPos].setAttribute("data-count", -2); }
                 break;
             case 40:
-                if (moveSnake != -1)
-                    moveSnake = 1; //down
+                if (hMove != -1) {
+                    hMove = 1; //down
+                    fakeRects[hPos].setAttribute("data-count", -3); }
                 break;
         }
     }
@@ -123,48 +132,58 @@
         e.target.style.fill = "rgb(35, 154, 59)";
     }
 
-    function borderTeleporter() {
-        if ((prevSnake + 1) % 7 == 0 && (goSnake + 7) % 7 == 0)
-            goSnake -= 7;
-        if ((goSnake + 1) % 7 == 0 && (prevSnake + 7) % 7 == 0)
-            goSnake += 7;
-        if ((goSnake < 0 && prevSnake < 7))
-            goSnake += 371;
-        if (goSnake > 370 && prevSnake > 363)
-            goSnake -= 371;
+    function sBorderFlip() {
+        if ((hWas + 1) % 7 == 0 && (hPos + 7) % 7 == 0)
+            hPos -= 7;
+        if ((hPos + 1) % 7 == 0 && (hWas + 7) % 7 == 0)
+            hPos += 7;
+        if ((hPos < 0 && hWas < 7))
+            hPos += 371;
+        if (hPos > 370 && hWas > 363)
+            hPos -= 371;
     }
 
-    function segmentSnake() {
-        fakeRects[goSnake].style.fill = "#e6af4b";
-        fakeRects[goSnake].setAttribute("data-count", -1); //wandering
-        //fakeRects[prevSnake].style.fill = "#ebedf0";
+    function sHead() {
+        if (fakeRects[hPos].getAttribute("data-count") == -1 && hMove != 0) {
+            sDeath = true;
+            fakeRects[hPos].style.fill = "#e05038";
+        }
+        else {
+            fakeRects[hPos].style.fill = "#e6af4b";
+            fakeRects[hPos].setAttribute("data-count", -1);
+        }
     }
 
-    function movementSnake() {
-        if (fakeRects[goSnake].getAttribute("data-count") > 0) //yummy!
-            hugeSnake.push();
-        if (fakeRects[goSnake].getAttribute("data-count") == -1 && moveSnake != 0) { //bloodbath
-            selfHarm = true;
-            fakeRects[goSnake].style.fill = "#e05038";
-        } else
-            segmentSnake();
+    function sTail() {
+        switch (fakeRects[hPos].getAttribute("data-count")) {
+            case -4: //l
+                tMove = -7;
+                break;
+            case -1: //u
+                tMove = -1;
+                break;
+            case -2: //r
+                tMove = 7;
+                break;
+            case -3: //d
+                tMove = 1;
+                break;
+        }
+        tPos += tMove;
+        fakeRects[tPos].style.fill = "#ebedf0";
+        fakeRects[tPos].setAttribute("data-count", 0);
     }
 
-    function actionsSnake() {
-        if (selfHarm) {
-            fakeRects[goSnake].style.fill = "#ebedf0";
-            //   TODO: Implement blinking without call a switchGameState()
-            //   function, because it must be called only on startButton
-            //   click event
-            //if (endPulse++ > 10)
-            //    var gameState = "off";
-            //else
-            //    switchGameState();
-        } else {
-            prevSnake = goSnake;
-            goSnake += moveSnake;
-            borderTeleporter();
-            movementSnake();
+    function sCrawling() {
+        if (sDeath) {
+            fakeRects[hPos].style.fill = "#ebedf0";
+        }
+        else {
+            sBorderFlip();
+            hWas = hPos;
+            hPos += hMove;
+            sTail();
+            sHead();
         }
     }
 
@@ -175,9 +194,6 @@
         drawStartButton(startButton, activityGraph);
         startButton.addEventListener("click", switchGameState);
         var fakeRects, realRects = document.getElementsByClassName("day");
-        var hugeSnake = [];
-        var selfHarm = false;
-        var goSnake = 0, moveSnake = 0, prevSnake = 0, endPulse = 0;
-        var intervalContainer;
+        var s, i, tPos, hPos, hWas, tMove, hMove, sDeath, intervalContainer;
     }
 })();
