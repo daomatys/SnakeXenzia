@@ -77,15 +77,14 @@
             window.addEventListener("keydown", preventDefaultArrows, false);
             document.onkeydown = keyboardArrowsCallback;
             startButton.innerText = "Turn Off";
-            hPos = 0; hWas = 1; hMove = 0; tMove = 0; tPos = 3; s = [2];
-            sDeath = false; sVelocity = 200; sPathSummary = 0;
-            for (i = 2; i >= 0; i--) {
+            hPos = 0; hWas = 1; hMove = -1; tMove = -1; tWas = 3; tPos = 2; s = [2];
+            sDeath = false; sVelocity = 180; sPathSummary = 0;
+            for (i = s.Length; i >= 0; i--) {
                 fakeRects[i].style.fill = "#e6af4b";
                 fakeRects[i].setAttribute("data-count", -1);
                 }
             intervalContainer = window.setInterval(sCrawling, sVelocity);
             gameState = "on";
-
         } else {
             removeAll(fakeRects);
             showAll(realRects);
@@ -105,25 +104,29 @@
 
     function keyboardArrowsCallback(e) {
         switch (e.keyCode) {
-            case 37: //l
-                if (hMove != 7) {
-                    hMove = -7;
-                    fakeRects[hPos].setAttribute("data-count", -4); }
-                break;
             case 38: //u
                 if (hMove != 1) {
                     hMove = -1;
-                    fakeRects[hPos].setAttribute("data-count", -1); }
+                    fakeRects[hPos].setAttribute("data-count", -11);
+                }
                 break;
             case 39: //r
                 if (hMove != -7) {
                     hMove = 7;
-                    fakeRects[hPos].setAttribute("data-count", -2); }
+                    fakeRects[hPos].setAttribute("data-count", -12);
+                }
                 break;
             case 40: //d
                 if (hMove != -1) {
                     hMove = 1;
-                    fakeRects[hPos].setAttribute("data-count", -3); }
+                    fakeRects[hPos].setAttribute("data-count", -13);
+                }
+                break;
+            case 37: //l
+                if (hMove != 7) {
+                    hMove = -7;
+                    fakeRects[hPos].setAttribute("data-count", -14);
+                }
                 break;
         }
     }
@@ -133,7 +136,9 @@
         e.target.style.fill = "rgb(35, 154, 59)";
     }
 
-    function sBorderFlip(pos, was) {
+    function sBorderFlip(pos, was, move) {
+        was = pos;
+        pos += move;
         if ((was + 1) % 7 == 0 && (pos + 7) % 7 == 0)
             pos -= 7;
         if ((pos + 1) % 7 == 0 && (was + 7) % 7 == 0)
@@ -149,8 +154,7 @@
         if (fakeRects[hPos].getAttribute("data-count") == -1 && hMove != 0) {
             sDeath = true;
             fakeRects[hPos].style.fill = "#e05038";
-        }
-        else {
+        } else {
             fakeRects[hPos].style.fill = "#e6af4b";
             fakeRects[hPos].setAttribute("data-count", -1);
         }
@@ -158,39 +162,32 @@
 
     function sTail() {
         switch (fakeRects[hPos].getAttribute("data-count")) {
-            case -4: //l
-                tMove = -7;
-                break;
-            case -1: //u
+            case -11: //u
                 tMove = -1;
                 break;
-            case -2: //r
+            case -12: //r
                 tMove = 7;
                 break;
-            case -3: //d
+            case -13: //d
                 tMove = 1;
                 break;
+            case -14: //l
+                tMove = -7;
+                break;
         }
-        //tPos += tMove;
         fakeRects[tPos].style.fill = "#ebedf0";
         fakeRects[tPos].setAttribute("data-count", 0);
     }
 
     function sCrawling() {
-        sPathSummary++;
-        if (sPathSummary == 1) {
-            hMove = -1; tMove = -1; }
         if (sDeath) {
-            fakeRects[hPos].style.fill = "#ebedf0"; }
-        else {
-            hWas = hPos;
-            hPos += hMove;
-            tWas = tPos;
-            tPos += tMove;
-            hPos = sBorderFlip(hPos, hWas);
-            tPos = sBorderFlip(tPos, tWas);
+            fakeRects[hPos].style.fill = "#ebedf0";
+        } else {
+            hPos = sBorderFlip(hPos, hWas, hMove);
+            tPos = sBorderFlip(tPos, tWas, tMove);
             sHead();
             sTail();
+            sPathSummary++;
         }
     }
 
