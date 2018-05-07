@@ -134,6 +134,7 @@
     }
 
     function sBorderFlip() {
+        //HEAD
         if ((hWas + 1) % 7 == 0 && (hPos + 7) % 7 == 0)
             hPos -= 7;
         if ((hPos + 1) % 7 == 0 && (hWas + 7) % 7 == 0)
@@ -142,6 +143,15 @@
             hPos += 371;
         if (hPos > 371 && hWas > 363)
             hPos -= 371;
+        //TAIL
+        if ((tWas + 1) % 7 == 0 && (tPos + 7) % 7 == 0)
+            tPos -= 7;
+        if ((tPos + 1) % 7 == 0 && (tWas + 7) % 7 == 0)
+            tPos += 7;
+        if ((tPos < 0 && tWas < 7))
+            tPos += 371;
+        if (tPos > 371 && tWas > 363)
+            tPos -= 371;
     }
 
     function sHead() {
