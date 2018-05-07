@@ -77,12 +77,13 @@
             window.addEventListener("keydown", preventDefaultArrows, false);
             document.onkeydown = keyboardArrowsCallback;
             startButton.innerText = "Turn Off";
-            hPos = 0; hWas = 1; hMove = 0; s = [2]; sDeath = false; tPos = 2; tMove = 0;
+            hPos = 0; hWas = 1; hMove = 0; tMove = 0; tPos = 3; s = [2];
+            sDeath = false; sVelocity = 200; sPathSummary = 0;
             for (i = 2; i >= 0; i--) {
                 fakeRects[i].style.fill = "#e6af4b";
                 fakeRects[i].setAttribute("data-count", -1);
                 }
-            intervalContainer = window.setInterval(sCrawling, 140);
+            intervalContainer = window.setInterval(sCrawling, sVelocity);
             gameState = "on";
 
         } else {
@@ -104,24 +105,24 @@
 
     function keyboardArrowsCallback(e) {
         switch (e.keyCode) {
-            case 37:
+            case 37: //l
                 if (hMove != 7) {
-                    hMove = -7; //left
+                    hMove = -7;
                     fakeRects[hPos].setAttribute("data-count", -4); }
                 break;
-            case 38:
+            case 38: //u
                 if (hMove != 1) {
-                    hMove = -1; //up
+                    hMove = -1;
                     fakeRects[hPos].setAttribute("data-count", -1); }
                 break;
-            case 39:
+            case 39: //r
                 if (hMove != -7) {
-                    hMove = 7; //right
+                    hMove = 7;
                     fakeRects[hPos].setAttribute("data-count", -2); }
                 break;
-            case 40:
+            case 40: //d
                 if (hMove != -1) {
-                    hMove = 1; //down
+                    hMove = 1;
                     fakeRects[hPos].setAttribute("data-count", -3); }
                 break;
         }
@@ -139,7 +140,7 @@
             hPos += 7;
         if ((hPos < 0 && hWas < 7))
             hPos += 371;
-        if (hPos > 370 && hWas > 363)
+        if (hPos > 371 && hWas > 363)
             hPos -= 371;
     }
 
@@ -169,21 +170,25 @@
                 tMove = 1;
                 break;
         }
-        tPos += tMove;
+        //tPos += tMove;
         fakeRects[tPos].style.fill = "#ebedf0";
         fakeRects[tPos].setAttribute("data-count", 0);
     }
 
     function sCrawling() {
+        sPathSummary++;
+        if (sPathSummary == 1) {
+            hMove = -1; tMove = -1; }
         if (sDeath) {
-            fakeRects[hPos].style.fill = "#ebedf0";
-        }
+            fakeRects[hPos].style.fill = "#ebedf0"; }
         else {
-            sBorderFlip();
             hWas = hPos;
             hPos += hMove;
-            sTail();
+            tWas = tPos;
+            tPos += tMove;
+            sBorderFlip();
             sHead();
+            sTail();
         }
     }
 
@@ -194,6 +199,6 @@
         drawStartButton(startButton, activityGraph);
         startButton.addEventListener("click", switchGameState);
         var fakeRects, realRects = document.getElementsByClassName("day");
-        var s, i, tPos, hPos, hWas, tMove, hMove, sDeath, intervalContainer;
+        var s, i, tPos, hPos, tWas, hWas, tMove, hMove, sVelocity, sPathSummary, sDeath, intervalContainer;
     }
 })();
