@@ -18,6 +18,16 @@ const MARK_DOWN = -13
 const MARK_LEFT = -14
 const MARK_RIGHT = -12
 
+const FIELD_HEIGHT = 7
+const FIELD_WIDTH = 53
+
+class Vec {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
 class Cell {
     constructor(rect) {
         this.rect = rect;
@@ -140,6 +150,8 @@ class Field {
     x(x) { return new Column(this.rects, x); }
 
     y(y) { return new Row(this.rects, y); }
+
+    byVec(vec) { return this.x(vec.x).y(vec.y) }
 }
 
 class StartButton {
@@ -208,21 +220,12 @@ class GithubActivityGraphController {
     set cellsOnClick(callback) { this.cellsOnClickCallback = callback; }
 }
 
-class Pos {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-}
-
 class SnakeGame {
     constructor(field) {
-        this.hPos = 0;
-        this.hWas = 1;
-        this.hMove = -1;
-        this.tPos = 2;
-        this.tWas = 3;
-        this.tMove = -1;
+        this.hPos = new Vec(0, 0);
+        this.hMove = new Vec(0, -1);
+        this.tPos = new Vec(0, 2);
+        this.tMove = new Vec(0, -1);
         this.s = [2];
         this.sDeath = false;
         this.sVelocity = 200;
@@ -251,48 +254,48 @@ class SnakeGame {
 
     crawl() {
         if (this.sDeath == true) {
-            this.field.n(this.hPos).color = "#ebedf0";
+            this.field.byVec(this.hPos).color = "#ebedf0";
         } else {
-            function sBorderFlip(pos, was, move) {
-                was = pos;
-                pos += move;
-                if ((was + 1) % 7 == 0 && (pos + 7) % 7 == 0)
-                    pos -= 7;
-                if ((pos + 1) % 7 == 0 && (was + 7) % 7 == 0)
-                    pos += 7;
-                if ((pos < 0 && was < 7))
-                    pos += 371;
-                if (pos > 371 && was > 363)
-                    pos -= 371;
+            function moveWithFlip(pos, move) {
+                pos.x += move.x;
+                pos.y += move.y;
+                if (pos.x < 0)
+                    pos.x = FIELD_WIDTH - 1;
+                if (pos.x > FIELD_WIDTH - 1)
+                    pos.x = 0;
+                if (pos.y < 0)
+                    pos.y = FIELD_HEIGHT - 1;
+                if (pos.y > FIELD_HEIGHT - 1)
+                    pos.y = 0;
                 return pos;
             }
 
-            this.hPos = sBorderFlip(this.hPos, this.hWas, this.hMove);
-            this.tPos = sBorderFlip(this.tPos, this.tWas, this.tMove);
+            this.hPos = moveWithFlip(this.hPos, this.hMove);
+            this.tPos = moveWithFlip(this.tPos, this.tMove);
 
             /* Handle Tail */
-            if (this.field.n(this.tPos).value == MARK_UP) {
-                this.tMove = -1;
+            if (this.field.byVec(this.tPos).value == MARK_UP) {
+                this.tMove = new Vec(0, -1);
             }
-            if (this.field.n(this.tPos).value == MARK_RIGHT) {
-                this.tMove = 7;
+            if (this.field.byVec(this.tPos).value == MARK_RIGHT) {
+                this.tMove = new Vec(1, 0);
 			}
-            if (this.field.n(this.tPos).value == MARK_DOWN) {
-                this.tMove = 1;
+            if (this.field.byVec(this.tPos).value == MARK_DOWN) {
+                this.tMove = new Vec(0, 1);
             }
-            if (this.field.n(this.tPos).value == MARK_LEFT) {
-                this.tMove = -7;
+            if (this.field.byVec(this.tPos).value == MARK_LEFT) {
+                this.tMove = new Vec(-1, 0);
             }
-            this.field.n(this.tPos).color = "#ebedf0";
-            this.field.n(this.tPos).value = 0;
+            this.field.byVec(this.tPos).color = "#ebedf0";
+            this.field.byVec(this.tPos).value = 0;
 
             /* Handle head */
-            if (this.field.n(this.hPos).value < 0 && this.hMove != 0) {
+            if (this.field.byVec(this.hPos).value < 0 && this.hMove != 0) {
                 this.sDeath = true;
-                this.field.n(this.hPos).color = "#e05038";
+                this.field.byVec(this.hPos).color = "#e05038";
             } else {
-                this.field.n(this.hPos).color = "#e6af4b";
-                this.field.n(this.hPos).value = -1;
+                this.field.byVec(this.hPos).color = "#e6af4b";
+                this.field.byVec(this.hPos).value = -1;
             }
 
             this.pathSummary++;
@@ -308,27 +311,27 @@ class SnakeGame {
     keyboardArrowsCallback(e) {
         switch (e.keyCode) {
         case KEY_UP: //u
-            if (this.hMove != 1) {
-                this.hMove = -1;
-                this.field.n(this.hPos).value = MARK_UP;
+            if (this.hMove != new Vec(0, 1)) {
+                this.hMove = new Vec(0, -1);
+                this.field.byVec(this.hPos).value = MARK_UP;
             }
             break;
         case KEY_RIGHT: //r
-            if (this.hMove != -7) {
-                this.hMove = 7;
-                this.field.n(this.hPos).value = MARK_RIGHT;
+            if (this.hMove != new Vec(-1, 0)) {
+                this.hMove = new Vec(1, 0);
+                this.field.byVec(this.hPos).value = MARK_RIGHT;
             }
             break;
         case KEY_DOWN: //d
-            if (this.hMove != -1) {
-                this.hMove = 1;
-                this.field.n(this.hPos).value = MARK_DOWN;
+            if (this.hMove != new Vec(0, -1)) {
+                this.hMove = new Vec(0, 1);
+                this.field.byVec(this.hPos).value = MARK_DOWN;
             }
             break;
         case KEY_LEFT: //l
-            if (this.hMove != 7) {
-                this.hMove = -7;
-                this.field.n(this.hPos).value = MARK_LEFT;
+            if (this.hMove != new Vec(1, 0)) {
+                this.hMove = new Vec(-1, 0);
+                this.field.byVec(this.hPos).value = MARK_LEFT;
             }
             break;
         }
