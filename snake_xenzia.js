@@ -8,196 +8,353 @@
 // @grant        none
 // ==/UserScript==
 
-(function() {
-    'use strict';
+const KEY_UP = 38
+const KEY_DOWN = 40
+const KEY_LEFT = 37
+const KEY_RIGHT = 39
 
-    function completeField(rects) {
-        var rightColumn = rects[rects.length - 1].parentElement;
-        var rightColumnInitSize = rightColumn.children.length;
-        var rightColumnSize = rightColumn.children.length;
-        while (rightColumnSize < 7 + rightColumnInitSize / 2) {
-            var rect = rightColumn.children[rightColumnSize - 1].cloneNode();
-            rect.setAttribute("y", parseInt(rect.getAttribute("y")) + 12);
-            rect.setAttribute("data-count", 0);
-            rect.setAttribute("fill", "#ebedf0");
-            rightColumn.appendChild(rect);
-            rects[rects.length] = rect;
-            rightColumnSize = rightColumn.children.length;
+const MARK_UP = -11
+const MARK_DOWN = -13
+const MARK_LEFT = -14
+const MARK_RIGHT = -12
+
+class Cell {
+    constructor(rect) {
+        this.rect = rect;
+    }
+
+    set color(color) { this.rect.setAttribute("fill", color); }
+
+    get color() { return this.rect.getAttribute("fill"); }
+
+    set value(value) { this.rect.setAttribute("data-count", value); }
+
+    get value() { return this.rect.getAttribute("data-count"); }
+
+    get x() { return this.rect.getAttribute("x") % 53; }
+
+    get y() { return this.rect.getAttribute("y") % 7; }
+}
+
+class Row {
+    constructor(rects, n) {
+        this.row = [];
+        for (let i = 0; i < 53; i++) {
+            this.row.push(new Cell(rects[7*i+n]));
         }
     }
 
-    function removeAll(rects) {
-        for (var i = 0; i < rects.length; i++)
-            rects[i].remove();
-    }
+    x(x) { return this.row[x]; }
+}
 
-    function hideAll(rects) {
-        for (var i = 0; i < rects.length; i++)
-            rects[i].style.display = "none";
-    }
-
-    function showAll(rects) {
-        for (var i = 0; i < rects.length; i++)
-            rects[i].style.display = "block";
-    }
-
-    function duplicateAll(rects) {
-        var fakes = [];
-        for (var i = 0; i < rects.length; i++) {
-            fakes[i] = rects[i].cloneNode();
-            fakes[i].className.baseVal = "dayfake";
-            rects[i].parentElement.appendChild(fakes[i]);
-            fakes[i].addEventListener("click", cellClickHandler, false);
+class Column {
+    constructor(rects, n) {
+        this.column = [];
+        for (let i = 0; i < 7; i++) {
+            this.column.push(new Cell(rects[n*7+i]));
         }
-        return fakes;
     }
 
-    function createStartButton() {
-        var startButton = document.createElement("Button");
-        var startButtonLabel = document.createTextNode("Play Snake");
-        startButton.appendChild(startButtonLabel);
-        startButton.classList.add("btn");
-        startButton.id = "startButton";
-        return startButton;
+    y(y) { return this.column[y]; }
+}
+
+class Field {
+    constructor(realGraphRects) {
+        this.realGraphRects = realGraphRects;
+        let rects = [];
+        for (let i = 0; i < realGraphRects.length; i++) {
+            rects[i] = realGraphRects[i].cloneNode();
+            rects[i].className.baseVal = "dayfake";
+            realGraphRects[i].parentElement.appendChild(rects[i]);
+        }
+
+        function fieldComplete(rects) {
+            let verticalStep = parseInt(rects[1].getAttribute("y"))
+                - parseInt(rects[0].getAttribute("y"));
+            let lastColumn = rects[rects.length - 1].parentElement;
+            let lastColumnSize = lastColumn.children.length;
+            for (let i = 0; i < 7 - lastColumnSize / 2; i++) {
+                let rect = lastColumn
+                    .children[lastColumn.children.length - 1]
+                    .cloneNode();
+                let y = parseInt(rect.getAttribute("y")) + verticalStep;
+                rect.setAttribute("y", y);
+                rect.setAttribute("data-count", 0);
+                rect.setAttribute("fill", "#ebedf0");
+                lastColumn.appendChild(rect);
+                rects.push(rect);
+            }
+        }
+
+        fieldComplete(rects);
+        this.rects = rects;
+
+        this.activate();
     }
 
-    function drawStartButton(startButton, activityGraph) {
-        var startButtonDiv = document.createElement("div");
-        startButtonDiv.style.clear = "left";
-        startButtonDiv.appendChild(startButton);
-        var footer = activityGraph[0].getElementsByClassName("contrib-footer clearfix mt-1 mx-3 px-3 pb-1");
-        footer[0].appendChild(startButtonDiv);
+    set cellsOnClick(callback) {
+        this.rects.forEach(
+            rect => rect.addEventListener(
+                "click",
+                function(e) { callback(new Cell(e.target)); }));
     }
 
-    function switchGameState() {
-        if (gameState == "off") {
-            fakeRects = duplicateAll(realRects);
-            completeField(fakeRects);
-            hideAll(realRects);
-            window.addEventListener("keydown", preventDefaultArrows, false);
-            document.onkeydown = keyboardArrowsCallback;
-            startButton.innerText = "Turn Off";
-            hPos = 0; hWas = 1; hMove = -1; tMove = -1; tWas = 3; tPos = 2; s = [2];
-            sDeath = false; sVelocity = 180; sPathSummary = 0;
-            for (i = s.Length; i >= 0; i--) {
-                fakeRects[i].style.fill = "#e6af4b";
-                fakeRects[i].setAttribute("data-count", -1);
-                }
-            intervalContainer = window.setInterval(sCrawling, sVelocity);
-            gameState = "on";
+    rectsHide(elements) {
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].style.display = "none";
+        }
+    }
+
+    rectsShow(elements) {
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].style.display = "block";
+        }
+    }
+
+    activate() {
+        this.rectsHide(this.realGraphRects);
+        this.rectsShow(this.rects);
+    }
+
+    deactivate() {
+        this.rectsHide(this.rects);
+        this.rectsShow(this.realGraphRects);
+    }
+
+    destroy() {
+        this.deactivate();
+        for (let i = 0; i < this.rects.length; i++) {
+            this.rects[i].remove();
+        }
+    }
+
+    clear() {
+        for (let i = 0; i < this.rects.length; i++) {
+            this.rects[i].setAttribute("data-count", 0);
+            this.rects[i].setAttribute("fill", "#ebedf0");
+        }
+    }
+
+    n(n) { return new Cell(this.rects[n]); }
+
+    x(x) { return new Column(this.rects, x); }
+
+    y(y) { return new Row(this.rects, y); }
+}
+
+class StartButton {
+    constructor(buttonId, buttonText) {
+        let element = document.createElement("Button");
+        element.appendChild(document.createTextNode(buttonText));
+        element.classList.add("btn");
+        element.id = buttonId;
+
+        let divWrapper = document.createElement("div");
+        divWrapper.style.clear = "left";
+        divWrapper.appendChild(element);
+
+        this.element = element;
+        this.divWrapper = divWrapper;
+
+    }
+
+    attachTo(newParentElement) {
+        newParentElement.appendChild(this.divWrapper);
+    }
+
+    set onClick(callback) { this.element.addEventListener("click", callback); }
+
+    set text(text) { this.element.innerText = text; }
+}
+
+class GithubActivityGraphController {
+    constructor(startButtonText, onStartFunction, onFinishFunction){
+        this.started = false;
+
+        let startButtonId = startButtonText
+            .toLowerCase()
+            .replace(" ", "-")
+            .concat("-btn");
+
+        let startButton = new StartButton(startButtonId, startButtonText);
+        startButton.attachTo(
+            document.getElementsByClassName(
+                "contrib-footer clearfix mt-1 mx-3 px-3 pb-1")[0]);
+
+        function startButtonOnClick() {
+            if (this.started == false) {
+                this.started = true;
+                startButton.text = "Turn off";
+
+                this.fld = new Field(document.getElementsByClassName("day"));
+                this.fld.cellsOnClick = this.cellsOnClickCallback;
+
+                onStartFunction(this);
+            } else {
+                onFinishFunction(this);
+
+                startButton.text = startButtonText;
+                this.fld.destroy();
+                this.started = false;
+            }
+        }
+
+        startButton.onClick = startButtonOnClick.bind(this);
+
+    }
+
+    get field() { return this.fld; }
+
+    set cellsOnClick(callback) { this.cellsOnClickCallback = callback; }
+}
+
+class Pos {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+class SnakeGame {
+    constructor(field) {
+        this.hPos = 0;
+        this.hWas = 1;
+        this.hMove = -1;
+        this.tPos = 2;
+        this.tWas = 3;
+        this.tMove = -1;
+        this.s = [2];
+        this.sDeath = false;
+        this.sVelocity = 200;
+        this.pathSummary = 0;
+        this.intervalContainer = undefined;
+
+        this.field = field;
+
+        for (let i = this.s.Length; i >= 0; i--) {
+            this.field.n(i).color = "#e6af4b";
+            this.field.n(i).value = -1;
+        }
+
+        window.addEventListener("keydown", this.preventDefaultArrows, false);
+        document.onkeydown = this.keyboardArrowsCallback.bind(this);
+        this.intervalContainer = window.setInterval(
+            this.crawl.bind(this),
+            this.sVelocity);
+    }
+
+    shutdown() {
+        window.removeEventListener("keydown", this.preventDefaultArrows, false);
+        document.onkeydown = 0;
+        window.clearInterval(this.intervalContainer);
+    }
+
+    crawl() {
+        if (this.sDeath == true) {
+            this.field.n(this.hPos).color = "#ebedf0";
         } else {
-            removeAll(fakeRects);
-            showAll(realRects);
-            window.removeEventListener("keydown", preventDefaultArrows, false);
-            document.onkeydown = 0;
-            startButton.innerText = "Play Snake";
-            window.clearInterval(intervalContainer);
-            gameState = "off";
+            function sBorderFlip(pos, was, move) {
+                was = pos;
+                pos += move;
+                if ((was + 1) % 7 == 0 && (pos + 7) % 7 == 0)
+                    pos -= 7;
+                if ((pos + 1) % 7 == 0 && (was + 7) % 7 == 0)
+                    pos += 7;
+                if ((pos < 0 && was < 7))
+                    pos += 371;
+                if (pos > 371 && was > 363)
+                    pos -= 371;
+                return pos;
+            }
+
+            this.hPos = sBorderFlip(this.hPos, this.hWas, this.hMove);
+            this.tPos = sBorderFlip(this.tPos, this.tWas, this.tMove);
+
+            /* Handle Tail */
+            if (this.field.n(this.tPos).value == MARK_UP) {
+                this.tMove = -1;
+            }
+            if (this.field.n(this.tPos).value == MARK_RIGHT) {
+                this.tMove = 7;
+			}
+            if (this.field.n(this.tPos).value == MARK_DOWN) {
+                this.tMove = 1;
+            }
+            if (this.field.n(this.tPos).value == MARK_LEFT) {
+                this.tMove = -7;
+            }
+            this.field.n(this.tPos).color = "#ebedf0";
+            this.field.n(this.tPos).value = 0;
+
+            /* Handle head */
+            if (this.field.n(this.hPos).value < 0 && this.hMove != 0) {
+                this.sDeath = true;
+                this.field.n(this.hPos).color = "#e05038";
+            } else {
+                this.field.n(this.hPos).color = "#e6af4b";
+                this.field.n(this.hPos).value = -1;
+            }
+
+            this.pathSummary++;
         }
     }
 
-    function preventDefaultArrows(e) {
-        if ([37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+    preventDefaultArrows(e) {
+        if ([KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT].indexOf(e.keyCode) > -1) {
             e.preventDefault();
         }
     }
 
-    function keyboardArrowsCallback(e) {
+    keyboardArrowsCallback(e) {
         switch (e.keyCode) {
-            case 38: //u
-                if (hMove != 1) {
-                    hMove = -1;
-                    fakeRects[hPos].setAttribute("data-count", -11);
-                }
-                break;
-            case 39: //r
-                if (hMove != -7) {
-                    hMove = 7;
-                    fakeRects[hPos].setAttribute("data-count", -12);
-                }
-                break;
-            case 40: //d
-                if (hMove != -1) {
-                    hMove = 1;
-                    fakeRects[hPos].setAttribute("data-count", -13);
-                }
-                break;
-            case 37: //l
-                if (hMove != 7) {
-                    hMove = -7;
-                    fakeRects[hPos].setAttribute("data-count", -14);
-                }
-                break;
+        case KEY_UP: //u
+            if (this.hMove != 1) {
+                this.hMove = -1;
+                this.field.n(this.hPos).value = MARK_UP;
+            }
+            break;
+        case KEY_RIGHT: //r
+            if (this.hMove != -7) {
+                this.hMove = 7;
+                this.field.n(this.hPos).value = MARK_RIGHT;
+            }
+            break;
+        case KEY_DOWN: //d
+            if (this.hMove != -1) {
+                this.hMove = 1;
+                this.field.n(this.hPos).value = MARK_DOWN;
+            }
+            break;
+        case KEY_LEFT: //l
+            if (this.hMove != 7) {
+                this.hMove = -7;
+                this.field.n(this.hPos).value = MARK_LEFT;
+            }
+            break;
         }
     }
+}
 
-    function cellClickHandler(e) {
-        e.target.setAttribute("data-count", parseInt(e.target.getAttribute("data-count")) + 1);
-        e.target.style.fill = "rgb(35, 154, 59)";
+(function() {
+    'use strict';
+
+    function cellClickHandler(cell) {
+        cell.value = cell.value + 1;
+        cell.color = "rgb(35, 154, 59)";
     }
 
-    function sBorderFlip(pos, was, move) {
-        was = pos;
-        pos += move;
-        if ((was + 1) % 7 == 0 && (pos + 7) % 7 == 0)
-            pos -= 7;
-        if ((pos + 1) % 7 == 0 && (was + 7) % 7 == 0)
-            pos += 7;
-        if ((pos < 0 && was < 7))
-            pos += 371;
-        if (pos > 371 && was > 363)
-            pos -= 371;
-        return pos;
-    }
+    if (document.getElementsByClassName("js-calendar-graph").length > 0) {
+        let gameState = undefined;
 
-    function sHead() {
-        if (fakeRects[hPos].getAttribute("data-count") == -1 && hMove != 0) {
-            sDeath = true;
-            fakeRects[hPos].style.fill = "#e05038";
-        } else {
-            fakeRects[hPos].style.fill = "#e6af4b";
-            fakeRects[hPos].setAttribute("data-count", -1);
-        }
-    }
+        let GAG = new GithubActivityGraphController(
+            "Play Snake",
+            function(gag) {
+                gameState = new SnakeGame(gag.field);
+            },
+            function() {
+                gameState.shutdown();
+            });
 
-    function sTail() {
-        switch (fakeRects[hPos].getAttribute("data-count")) {
-            case -11: //u
-                tMove = -1;
-                break;
-            case -12: //r
-                tMove = 7;
-                break;
-            case -13: //d
-                tMove = 1;
-                break;
-            case -14: //l
-                tMove = -7;
-                break;
-        }
-        fakeRects[tPos].style.fill = "#ebedf0";
-        fakeRects[tPos].setAttribute("data-count", 0);
-    }
-
-    function sCrawling() {
-        if (sDeath) {
-            fakeRects[hPos].style.fill = "#ebedf0";
-        } else {
-            hPos = sBorderFlip(hPos, hWas, hMove);
-            tPos = sBorderFlip(tPos, tWas, tMove);
-            sHead();
-            sTail();
-            sPathSummary++;
-        }
-    }
-
-    var activityGraph = document.getElementsByClassName("js-contribution-graph");
-    if (activityGraph.length > 0) {
-        var gameState = "off";
-        var startButton = createStartButton();
-        drawStartButton(startButton, activityGraph);
-        startButton.addEventListener("click", switchGameState);
-        var fakeRects, realRects = document.getElementsByClassName("day");
-        var s, i, tPos, hPos, tWas, hWas, tMove, hMove, sVelocity, sPathSummary, sDeath, intervalContainer;
+        GAG.cellsOnClick = cellClickHandler;
     }
 })();
