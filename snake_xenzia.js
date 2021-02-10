@@ -21,6 +21,14 @@ const MARK_RIGHT = -12
 const FIELD_HEIGHT = 7
 const FIELD_WIDTH = 53
 
+const CELL_COLOR_EMPTY = "var(--color-calendar-graph-day-bg)"
+const CELL_COLOR_L1 = "var(--color-calendar-graph-day-L1-bg)"
+const CELL_COLOR_L2 = "var(--color-calendar-graph-day-L2-bg)"
+const CELL_COLOR_L3 = "var(--color-calendar-graph-day-L3-bg)"
+const CELL_COLOR_L4 = "var(--color-calendar-graph-day-L4-bg)"
+const CELL_COLOR_YELLOW = "#e6af4b"
+const CELL_COLOR_RED = "#e05038"
+
 class Vec {
     constructor(x, y) {
         this.x = x;
@@ -33,9 +41,9 @@ class Cell {
         this.rect = rect;
     }
 
-    set color(color) { this.rect.setAttribute("fill", color); }
+    set color(color) { this.rect.style.fill = color; }
 
-    get color() { return this.rect.getAttribute("fill"); }
+    get color() { return this.rect.style.fill }
 
     set value(value) { this.rect.setAttribute("data-count", value); }
 
@@ -75,6 +83,7 @@ class Field {
         for (let i = 0; i < realGraphRects.length; i++) {
             rects[i] = realGraphRects[i].cloneNode();
             rects[i].className.baseVal = "dayfake";
+            rects[i].style.fill = CELL_COLOR_EMPTY;
             realGraphRects[i].parentElement.appendChild(rects[i]);
         }
 
@@ -90,7 +99,7 @@ class Field {
                 let y = parseInt(rect.getAttribute("y")) + verticalStep;
                 rect.setAttribute("y", y);
                 rect.setAttribute("data-count", 0);
-                rect.setAttribute("fill", "#ebedf0");
+                rect.style.fill = CELL_COLOR_EMPTY;
                 lastColumn.appendChild(rect);
                 rects.push(rect);
             }
@@ -141,7 +150,7 @@ class Field {
     clear() {
         for (let i = 0; i < this.rects.length; i++) {
             this.rects[i].setAttribute("data-count", 0);
-            this.rects[i].setAttribute("fill", "#ebedf0");
+            this.rects[i].style.fill = CELL_COLOR_EMPTY;
         }
     }
 
@@ -190,15 +199,14 @@ class GithubActivityGraphController {
 
         let startButton = new StartButton(startButtonId, startButtonText);
         startButton.attachTo(
-            document.getElementsByClassName(
-                "contrib-footer clearfix mt-1 mx-3 px-3 pb-1")[0]);
+            document.getElementsByClassName("js-calendar-graph")[0]);
 
         function startButtonOnClick() {
             if (this.started == false) {
                 this.started = true;
                 startButton.text = "Turn off";
 
-                this.fld = new Field(document.getElementsByClassName("day"));
+                this.fld = new Field(document.getElementsByClassName("js-calendar-graph-svg")[0].getElementsByClassName("ContributionCalendar-day"));
                 this.fld.cellsOnClick = this.cellsOnClickCallback;
 
                 onStartFunction(this);
@@ -235,7 +243,7 @@ class SnakeGame {
         this.field = field;
 
         for (let i = this.s.Length; i >= 0; i--) {
-            this.field.n(i).color = "#e6af4b";
+            this.field.n(i).color = CELL_COLOR_YELLOW;
             this.field.n(i).value = -1;
         }
 
@@ -254,7 +262,7 @@ class SnakeGame {
 
     crawl() {
         if (this.sDeath == true) {
-            this.field.byVec(this.hPos).color = "#ebedf0";
+            this.field.byVec(this.hPos).color = CELL_COLOR_EMPTY;
         } else {
             function moveWithFlip(pos, move) {
                 pos.x += move.x;
@@ -286,15 +294,15 @@ class SnakeGame {
             if (this.field.byVec(this.tPos).value == MARK_LEFT) {
                 this.tMove = new Vec(-1, 0);
             }
-            this.field.byVec(this.tPos).color = "#ebedf0";
+            this.field.byVec(this.tPos).color = CELL_COLOR_EMPTY;
             this.field.byVec(this.tPos).value = 0;
 
             /* Handle head */
             if (this.field.byVec(this.hPos).value < 0 && this.hMove != 0) {
                 this.sDeath = true;
-                this.field.byVec(this.hPos).color = "#e05038";
+                this.field.byVec(this.hPos).color = CELL_COLOR_RED;
             } else {
-                this.field.byVec(this.hPos).color = "#e6af4b";
+                this.field.byVec(this.hPos).color = CELL_COLOR_YELLOW;
                 this.field.byVec(this.hPos).value = -1;
             }
 
@@ -343,7 +351,7 @@ class SnakeGame {
 
     function cellClickHandler(cell) {
         cell.value = cell.value + 1;
-        cell.color = "rgb(35, 154, 59)";
+        cell.color = CELL_COLOR_L3;
     }
 
     if (document.getElementsByClassName("js-calendar-graph").length > 0) {
