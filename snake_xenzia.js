@@ -232,9 +232,9 @@ class SnakeGame {
     constructor(field) {
         this.hPos = new Vec(0, 0);
         this.hMove = new Vec(0, -1);
-        this.tPos = new Vec(0, 2);
+        this.tPos = new Vec(0, 6);
         this.tMove = new Vec(0, -1);
-        this.s = [2];
+        this.s = [6];
         this.sDeath = false;
         this.sVelocity = 200;
         this.pathSummary = 0;
@@ -349,11 +349,6 @@ class SnakeGame {
 (function() {
     'use strict';
 
-    function cellClickHandler(cell) {
-        cell.value = cell.value + 1;
-        cell.color = CELL_COLOR_L3;
-    }
-
     if (document.getElementsByClassName("js-calendar-graph").length > 0) {
         let gameState = undefined;
 
@@ -365,7 +360,5 @@ class SnakeGame {
             function() {
                 gameState.shutdown();
             });
-
-        GAG.cellsOnClick = cellClickHandler;
     }
 })();
