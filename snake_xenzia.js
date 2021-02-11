@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Snake Xenzia on Github
+// @name         SnakeXenziaGithub
 // @namespace    https://github.com/daomatys/SnakeXenzia
-// @version      0.1
+// @version      0.2
 // @description  Github activity graph based game "Snake Xenzia"
 // @author       daomatys, oxore
 // @match        https://github.com/*
@@ -176,7 +176,7 @@ class StartButton {
         divWrapper.appendChild(element);
 
         this.element = element;
-        this.divWrapper = divWrapper;      
+        this.divWrapper = divWrapper;
     }
 
     attachTo(newParentElement) {
@@ -230,20 +230,23 @@ class GithubActivityGraphController {
 
 class SnakeGame {
     constructor(field) {
-        this.hPos = new Vec(0, 0);
-        this.hMove = new Vec(0, -1);
-        this.tPos = new Vec(0, 6);
-        this.tMove = new Vec(0, -1);
-        this.s = [6];
-        this.sDeath = false;
-      	this.sFed = false;
-        this.sVelocity = 200;
+		this.snakeSize = [6];
+        this.snakeVelocity = 200;	
+		
+        this.snakeHeadLocation = new Vec(0, 0);
+        this.snakeHeadMove = new Vec(0, -1);
+		
+        this.snakeTailLocation = new Vec(0, 6);
+        this.snakeTailMove = new Vec(0, -1);
+		
+        this.snakeDeathCondition = false;
+      	this.snakeFeedCondition = false;		
+
         this.pathSummary = 0;
         this.intervalContainer = undefined;
-
         this.field = field;
 
-        for (let i = this.s.Length; i >= 0; i--) {
+        for (let i = this.snakeSize.Length; i >= 0; i--) {
             this.field.n(i).color = CELL_COLOR_YELLOW;
             this.field.n(i).value = -1;
         }
@@ -252,7 +255,7 @@ class SnakeGame {
         document.onkeydown = this.keyboardArrowsCallback.bind(this);
         this.intervalContainer = window.setInterval(
             this.crawl.bind(this),
-            this.sVelocity);
+            this.snakeVelocity);
     }
 
     shutdown() {
@@ -262,8 +265,8 @@ class SnakeGame {
     }
 
     crawl() {
-        if (this.sDeath == true) {
-            this.field.byVec(this.hPos).color = CELL_COLOR_EMPTY;
+        if (this.snakeDeathCondition == true) {
+            this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_EMPTY;
         } else {
             function moveWithFlip(pos, move) {
                 pos.x += move.x;
@@ -279,40 +282,39 @@ class SnakeGame {
                 return pos;
             }
 
-            this.hPos = moveWithFlip(this.hPos, this.hMove);
-            this.tPos = moveWithFlip(this.tPos, this.tMove);
+			this.snakeHeadLocation = moveWithFlip(this.snakeHeadLocation, this.snakeHeadMove);
+			this.snakeTailLocation = moveWithFlip(this.snakeTailLocation, this.snakeTailMove);
 
-            /* Handle Tail */
-						if (this.sFed == true) {
-                this.sFed = false;
-              	this.tMove = new Vec(0, 0);
-            } else {
-            		if (this.field.byVec(this.tPos).value == MARK_UP) {
-            		    this.tMove = new Vec(0, -1);
-            		}
-            		if (this.field.byVec(this.tPos).value == MARK_RIGHT) {
-            		    this.tMove = new Vec(1, 0);
-								}
-            		if (this.field.byVec(this.tPos).value == MARK_DOWN) {
-            		    this.tMove = new Vec(0, 1);
-            		}
-            		if (this.field.byVec(this.tPos).value == MARK_LEFT) {
-            		    this.tMove = new Vec(-1, 0);
-            		}
-            		this.field.byVec(this.tPos).color = CELL_COLOR_EMPTY;
-            		this.field.byVec(this.tPos).value = 0;        				
-        		}
+			/* Handle Tail */
+			if (this.snakeFeedCondition == false) {				
+				if (this.field.byVec(this.snakeTailLocation).value == MARK_UP) {
+					this.snakeTailMove = new Vec(0, -1);
+				}
+				if (this.field.byVec(this.snakeTailLocation).value == MARK_RIGHT) {
+					this.snakeTailMove = new Vec(1, 0);
+				}
+				if (this.field.byVec(this.snakeTailLocation).value == MARK_DOWN) {
+					this.snakeTailMove = new Vec(0, 1);
+				}
+				if (this.field.byVec(this.snakeTailLocation).value == MARK_LEFT) {
+					this.snakeTailMove = new Vec(-1, 0);
+				}				
+				this.field.byVec(this.snakeTailLocation).color = CELL_COLOR_EMPTY;
+				this.field.byVec(this.snakeTailLocation).value = 0;					
+			} else {
+				this.snakeFeedCondition = false;
+			}
 
             /* Handle head */
-            if (this.field.byVec(this.hPos).value < 0 && this.hMove != 0) {
-                this.sDeath = true;
-                this.field.byVec(this.hPos).color = CELL_COLOR_RED;
+            if (this.field.byVec(this.snakeHeadLocation).value < 0 && this.snakeHeadMove != 0) {
+                this.snakeDeathCondition = true;
+                this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_RED;
             } else {
-                if (this.field.byVec(this.hPos).value > 0 ) {
-                		this.sFed = true;
+                if (this.field.byVec(this.snakeHeadLocation).value > 0 ) {
+                	this.snakeFeedCondition = true;
               	}
-                this.field.byVec(this.hPos).color = CELL_COLOR_YELLOW;
-                this.field.byVec(this.hPos).value = -1;
+                this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_YELLOW;
+                this.field.byVec(this.snakeHeadLocation).value = -1;
             }
             this.pathSummary++;
         }
@@ -325,29 +327,29 @@ class SnakeGame {
     }
 
     keyboardArrowsCallback(e) {
-        switch (e.keyCode) {
-        case KEY_UP: //u
-            if (this.hMove != new Vec(0, 1)) {
-                this.hMove = new Vec(0, -1);
-                this.field.byVec(this.hPos).value = MARK_UP;
+        switch (e.keyCode) {			
+		case KEY_UP: //u
+            if (this.snakeHeadMove != new Vec(0, 1)) {
+                this.snakeHeadMove = new Vec(0, -1);
+                this.field.byVec(this.snakeHeadLocation).value = MARK_UP;
             }
             break;
         case KEY_RIGHT: //r
-            if (this.hMove != new Vec(-1, 0)) {
-                this.hMove = new Vec(1, 0);
-                this.field.byVec(this.hPos).value = MARK_RIGHT;
+            if (this.snakeHeadMove != new Vec(-1, 0)) {
+                this.snakeHeadMove = new Vec(1, 0);
+                this.field.byVec(this.snakeHeadLocation).value = MARK_RIGHT;
             }
             break;
         case KEY_DOWN: //d
-            if (this.hMove != new Vec(0, -1)) {
-                this.hMove = new Vec(0, 1);
-                this.field.byVec(this.hPos).value = MARK_DOWN;
+            if (this.snakeHeadMove != new Vec(0, -1)) {
+                this.snakeHeadMove = new Vec(0, 1);
+                this.field.byVec(this.snakeHeadLocation).value = MARK_DOWN;
             }
             break;
         case KEY_LEFT: //l
-            if (this.hMove != new Vec(1, 0)) {
-                this.hMove = new Vec(-1, 0);
-                this.field.byVec(this.hPos).value = MARK_LEFT;
+            if (this.snakeHeadMove != new Vec(1, 0)) {
+                this.snakeHeadMove = new Vec(-1, 0);
+                this.field.byVec(this.snakeHeadLocation).value = MARK_LEFT;
             }
             break;
         }
@@ -356,9 +358,9 @@ class SnakeGame {
 
 (function() {
     'use strict';
-  
+
     function cellClickHandler(cell) {
-        cell.value = cell.value + 1;
+        cell.value = 3;
         cell.color = CELL_COLOR_L3;
     }
 
@@ -373,7 +375,7 @@ class SnakeGame {
             function() {
                 gameState.shutdown();
             });
-      
+
         GAG.cellsOnClick = cellClickHandler;
     }
 })();
