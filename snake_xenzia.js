@@ -26,6 +26,7 @@ const CELL_COLOR_L1 = "var(--color-calendar-graph-day-L1-bg)"
 const CELL_COLOR_L2 = "var(--color-calendar-graph-day-L2-bg)"
 const CELL_COLOR_L3 = "var(--color-calendar-graph-day-L3-bg)"
 const CELL_COLOR_L4 = "var(--color-calendar-graph-day-L4-bg)"
+
 const CELL_COLOR_YELLOW = "#e6af4b"
 const CELL_COLOR_RED = "#e05038"
 
@@ -175,8 +176,7 @@ class StartButton {
         divWrapper.appendChild(element);
 
         this.element = element;
-        this.divWrapper = divWrapper;
-
+        this.divWrapper = divWrapper;      
     }
 
     attachTo(newParentElement) {
@@ -236,6 +236,7 @@ class SnakeGame {
         this.tMove = new Vec(0, -1);
         this.s = [6];
         this.sDeath = false;
+      	this.sFed = false;
         this.sVelocity = 200;
         this.pathSummary = 0;
         this.intervalContainer = undefined;
@@ -282,30 +283,37 @@ class SnakeGame {
             this.tPos = moveWithFlip(this.tPos, this.tMove);
 
             /* Handle Tail */
-            if (this.field.byVec(this.tPos).value == MARK_UP) {
-                this.tMove = new Vec(0, -1);
-            }
-            if (this.field.byVec(this.tPos).value == MARK_RIGHT) {
-                this.tMove = new Vec(1, 0);
-			}
-            if (this.field.byVec(this.tPos).value == MARK_DOWN) {
-                this.tMove = new Vec(0, 1);
-            }
-            if (this.field.byVec(this.tPos).value == MARK_LEFT) {
-                this.tMove = new Vec(-1, 0);
-            }
-            this.field.byVec(this.tPos).color = CELL_COLOR_EMPTY;
-            this.field.byVec(this.tPos).value = 0;
+						if (this.sFed == true) {
+                this.sFed = false;
+              	this.tMove = new Vec(0, 0);
+            } else {
+            		if (this.field.byVec(this.tPos).value == MARK_UP) {
+            		    this.tMove = new Vec(0, -1);
+            		}
+            		if (this.field.byVec(this.tPos).value == MARK_RIGHT) {
+            		    this.tMove = new Vec(1, 0);
+								}
+            		if (this.field.byVec(this.tPos).value == MARK_DOWN) {
+            		    this.tMove = new Vec(0, 1);
+            		}
+            		if (this.field.byVec(this.tPos).value == MARK_LEFT) {
+            		    this.tMove = new Vec(-1, 0);
+            		}
+            		this.field.byVec(this.tPos).color = CELL_COLOR_EMPTY;
+            		this.field.byVec(this.tPos).value = 0;        				
+        		}
 
             /* Handle head */
             if (this.field.byVec(this.hPos).value < 0 && this.hMove != 0) {
                 this.sDeath = true;
                 this.field.byVec(this.hPos).color = CELL_COLOR_RED;
             } else {
+                if (this.field.byVec(this.hPos).value > 0 ) {
+                		this.sFed = true;
+              	}
                 this.field.byVec(this.hPos).color = CELL_COLOR_YELLOW;
                 this.field.byVec(this.hPos).value = -1;
             }
-
             this.pathSummary++;
         }
     }
@@ -348,6 +356,11 @@ class SnakeGame {
 
 (function() {
     'use strict';
+  
+    function cellClickHandler(cell) {
+        cell.value = cell.value + 1;
+        cell.color = CELL_COLOR_L3;
+    }
 
     if (document.getElementsByClassName("js-calendar-graph").length > 0) {
         let gameState = undefined;
@@ -360,5 +373,7 @@ class SnakeGame {
             function() {
                 gameState.shutdown();
             });
+      
+        GAG.cellsOnClick = cellClickHandler;
     }
 })();
