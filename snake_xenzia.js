@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		 SnakeXenziaGithub
 // @namespace	 https://github.com/daomatys/SnakeXenzia
-// @version		 0.24
+// @version		 0.25
 // @description	 Github activity graph based game "Snake Xenzia"
 // @author		 daomatys, oxore
 // @match		 https://github.com/*
@@ -29,6 +29,7 @@ const CELL_COLOR_L4 = "var(--color-calendar-graph-day-L4-bg)"
 
 const CELL_COLOR_YELLOW = "#e6af4b"
 const CELL_COLOR_RED = "#e05038"
+const CELL_COLOR_VIOLET = "#7c26cb"
 
 class Vec {
 	constructor(x, y) {
@@ -235,7 +236,7 @@ class GithubActivityGraphController {
 
 class SnakeGame {
 	constructor(field) {
-		this.snakeSize = 2;
+		this.snakeSize = 8;
 		this.snakeVelocity = 200;
 
 		this.snakeHeadLocation = new Vec(-1, 3);
@@ -244,11 +245,15 @@ class SnakeGame {
 		this.snakeTailLocation = new Vec(FIELD_WIDTH-1-this.snakeSize, 3);
 		this.snakeTailMove = new Vec(1, 0);
 
+		this.snakeDeathAlert = true;
 		this.snakeDeathCondition = false;
 		this.snakeFeedCondition = false;
-		this.foodPlacedEvent = false;
+
+		this.foodSpawnCommon = false;
+		this.foodSpawnEpic = 0;
 
 		this.pathSummary = 0;
+		
 		this.intervalContainer = undefined;
 		this.field = field;
 
@@ -267,12 +272,14 @@ class SnakeGame {
 
 	crawl() {
 		if (this.snakeDeathCondition == true) {
-			switch(this.field.byVec(this.snakeHeadLocation).color) {
-				case CELL_COLOR_YELLOW:
+			switch(this.snakeDeathAlert) {
+				case true:
 					this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_RED;
+					this.snakeDeathAlert = false;
 					break;
-				case CELL_COLOR_RED:
+				case false:
 					this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_YELLOW;
+					this.snakeDeathAlert = true;
 					break;
 			}
 		} else {
@@ -321,14 +328,14 @@ class SnakeGame {
 					this.snakeFeedCondition = true;
 					this.snakeSize++;
 					if (this.field.byVec(this.snakeHeadLocation).value == 3 ) {
-						this.foodPlacedEvent = false;
+						this.foodSpawnCommon = false;
 					}
 				}
 				this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_YELLOW;
 				this.field.byVec(this.snakeHeadLocation).value = -1;
 			}
 
-			if (this.foodPlacedEvent == false) {
+			if (this.foodSpawnCommon == false) {
 				this.food();
 			}
 
@@ -345,7 +352,7 @@ class SnakeGame {
 		while (this.field.byVec(this.foodRandomLocation).value < 0) {
 			this.foodRandomLocation = new Vec(getRandomInt(FIELD_WIDTH), getRandomInt(FIELD_HEIGHT));
 		}
-		this.foodPlacedEvent = true;
+		this.foodSpawnCommon = true;
 		this.field.byVec(this.foodRandomLocation).color = CELL_COLOR_L3;
 		this.field.byVec(this.foodRandomLocation).value = 3;
 	}
