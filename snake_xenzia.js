@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		 SnakeXenziaGithub
 // @namespace	 https://github.com/daomatys/SnakeXenzia
-// @version		 0.23
+// @version		 0.24
 // @description	 Github activity graph based game "Snake Xenzia"
 // @author		 daomatys, oxore
 // @match		 https://github.com/*
@@ -91,6 +91,7 @@ class Field {
 			rects[i].className.baseVal = "dayfake";
 			rects[i].style.fill = CELL_COLOR_EMPTY;
 			realGraphRects[i].parentElement.appendChild(rects[i]);
+			rects[i].setAttribute("data-count", 0);
 		}
 
 		function fieldComplete(rects) {
@@ -389,8 +390,8 @@ class SnakeGame {
 	'use strict';
 
 	function cellClickHandler(cell) {
-		cell.value = 2;
-		cell.color = CELL_COLOR_L2;
+		cell.value = 1;
+		cell.color = CELL_COLOR_L1;
 	}
 
 	if (document.getElementsByClassName("js-calendar-graph").length > 0) {
