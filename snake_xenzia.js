@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		 SnakeXenziaGithub
 // @namespace	 https://github.com/daomatys/SnakeXenzia
-// @version		 0.22
+// @version		 0.23
 // @description	 Github activity graph based game "Snake Xenzia"
 // @author		 daomatys, oxore
 // @match		 https://github.com/*
@@ -245,6 +245,7 @@ class SnakeGame {
 
 		this.snakeDeathCondition = false;
 		this.snakeFeedCondition = false;
+		this.foodPlacedEvent = false;
 
 		this.pathSummary = 0;
 		this.intervalContainer = undefined;
@@ -265,7 +266,7 @@ class SnakeGame {
 
 	crawl() {
 		if (this.snakeDeathCondition == true) {
-			switch(this.field.byVec(this.snakeHeadLocation).color.value) {
+			switch(this.field.byVec(this.snakeHeadLocation).color) {
 				case CELL_COLOR_YELLOW:
 					this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_RED;
 					break;
@@ -318,25 +319,34 @@ class SnakeGame {
 				if (this.field.byVec(this.snakeHeadLocation).value > 0 ) {
 					this.snakeFeedCondition = true;
 					this.snakeSize++;
+					if (this.field.byVec(this.snakeHeadLocation).value == 3 ) {
+						this.foodPlacedEvent = false;
+					}
 				}
 				this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_YELLOW;
 				this.field.byVec(this.snakeHeadLocation).value = -1;
 			}
+
+			if (this.foodPlacedEvent == false) {
+				this.food();
+			}
+
 			this.pathSummary++;
 		}
 	}
 
 	food() {
 		function getRandomInt(max) {
-			return Math.random() * Math.floor(max);
+			return Math.floor(Math.random() * Math.floor(max));
 		}
 		this.foodRandomLocation = new Vec(getRandomInt(FIELD_WIDTH), getRandomInt(FIELD_HEIGHT));
 
 		while (this.field.byVec(this.foodRandomLocation).value < 0) {
 			this.foodRandomLocation = new Vec(getRandomInt(FIELD_WIDTH), getRandomInt(FIELD_HEIGHT));
 		}
-		this.field.byVec(this.foodRandomLocation).value = 3;
+		this.foodPlacedEvent = true;
 		this.field.byVec(this.foodRandomLocation).color = CELL_COLOR_L3;
+		this.field.byVec(this.foodRandomLocation).value = 3;
 	}
 
 	preventDefaultArrows(e) {
@@ -379,8 +389,8 @@ class SnakeGame {
 	'use strict';
 
 	function cellClickHandler(cell) {
-		cell.value = 3;
-		cell.color = CELL_COLOR_L3;
+		cell.value = 2;
+		cell.color = CELL_COLOR_L2;
 	}
 
 	if (document.getElementsByClassName("js-calendar-graph").length > 0) {
