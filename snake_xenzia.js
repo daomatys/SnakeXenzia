@@ -234,13 +234,13 @@ class GithubActivityGraphController {
 
 class SnakeGame {
 	constructor(field) {
-		this.snakeSize = [3];
+		this.snakeSize = 2;
 		this.snakeVelocity = 200;
 
-		this.snakeHeadLocation = new Vec(3, 3);
+		this.snakeHeadLocation = new Vec(-1, 3);
 		this.snakeHeadMove = new Vec(1, 0);
 
-		this.snakeTailLocation = new Vec(0, 3);
+		this.snakeTailLocation = new Vec(FIELD_WIDTH-1-this.snakeSize, 3);
 		this.snakeTailMove = new Vec(1, 0);
 
 		this.snakeDeathCondition = false;
@@ -249,11 +249,6 @@ class SnakeGame {
 		this.pathSummary = 0;
 		this.intervalContainer = undefined;
 		this.field = field;
-
-		for (let i = this.snakeSize.Length; i >= 0; i--) {
-			this.field.n(i).color = CELL_COLOR_YELLOW;
-			this.field.n(i).value = -1;
-		}
 
 		window.addEventListener("keydown", this.preventDefaultArrows, false);
 		document.onkeydown = this.keyboardArrowsCallback.bind(this);
@@ -292,7 +287,7 @@ class SnakeGame {
 					pos.y = 0;
 				return pos;
 			}
-			
+
 			this.snakeHeadLocation = snakeCrawlingEngine(this.snakeHeadLocation, this.snakeHeadMove);
 			if (this.snakeFeedCondition == false) {
 				this.snakeTailLocation = snakeCrawlingEngine(this.snakeTailLocation, this.snakeTailMove);
@@ -316,18 +311,32 @@ class SnakeGame {
 			this.field.byVec(this.snakeTailLocation).color = CELL_COLOR_EMPTY;
 			this.field.byVec(this.snakeTailLocation).value = 0;
 
-			/* Handle head */
+			/* Handle Head */
 			if (this.field.byVec(this.snakeHeadLocation).value < 0 && this.snakeHeadMove != 0) {
 				this.snakeDeathCondition = true;
 			} else {
 				if (this.field.byVec(this.snakeHeadLocation).value > 0 ) {
 					this.snakeFeedCondition = true;
+					this.snakeSize++;
 				}
 				this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_YELLOW;
 				this.field.byVec(this.snakeHeadLocation).value = -1;
 			}
 			this.pathSummary++;
 		}
+	}
+
+	food() {
+		function getRandomInt(max) {
+			return Math.random() * Math.floor(max);
+		}
+		this.foodRandomLocation = new Vec(getRandomInt(FIELD_WIDTH), getRandomInt(FIELD_HEIGHT));
+
+		while (this.field.byVec(this.foodRandomLocation).value < 0) {
+			this.foodRandomLocation = new Vec(getRandomInt(FIELD_WIDTH), getRandomInt(FIELD_HEIGHT));
+		}
+		this.field.byVec(this.foodRandomLocation).value = 3;
+		this.field.byVec(this.foodRandomLocation).color = CELL_COLOR_L3;
 	}
 
 	preventDefaultArrows(e) {
