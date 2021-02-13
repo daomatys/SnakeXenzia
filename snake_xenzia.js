@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		 SnakeXenziaGithub
 // @namespace	 https://github.com/daomatys/SnakeXenzia
-// @version		 0.21
+// @version		 0.22
 // @description	 Github activity graph based game "Snake Xenzia"
 // @author		 daomatys, oxore
 // @match		 https://github.com/*
@@ -41,7 +41,6 @@ const DIRECTION_UP = new Vec(0, -1);
 const DIRECTION_DOWN = new Vec(0, 1);
 const DIRECTION_LEFT = new Vec(-1, 0);
 const DIRECTION_RIGHT = new Vec(1, 0);
-const DIRECTION_SKIP = new Vec(0, 0);
 
 class Cell {
 	constructor(rect) {
@@ -271,9 +270,16 @@ class SnakeGame {
 
 	crawl() {
 		if (this.snakeDeathCondition == true) {
-			this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_EMPTY;
+			switch(this.field.byVec(this.snakeHeadLocation).color.value) {
+				case CELL_COLOR_YELLOW:
+					this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_RED;
+					break;
+				case CELL_COLOR_RED:
+					this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_YELLOW;
+					break;
+			}
 		} else {
-			function moveWithFlip(pos, move) {
+			function snakeCrawlingEngine(pos, move) {
 				pos.x += move.x;
 				pos.y += move.y;
 				if (pos.x < 0)
@@ -286,35 +292,33 @@ class SnakeGame {
 					pos.y = 0;
 				return pos;
 			}
-
-			this.snakeHeadLocation = moveWithFlip(this.snakeHeadLocation, this.snakeHeadMove);
-			this.snakeTailLocation = moveWithFlip(this.snakeTailLocation, this.snakeTailMove);
-
-			/* Handle Tail */
+			
+			this.snakeHeadLocation = snakeCrawlingEngine(this.snakeHeadLocation, this.snakeHeadMove);
 			if (this.snakeFeedCondition == false) {
-				if (this.field.byVec(this.snakeTailLocation).value == MARK_UP) {
-					this.snakeTailMove = DIRECTION_UP;
-				}
-				if (this.field.byVec(this.snakeTailLocation).value == MARK_DOWN) {
-					this.snakeTailMove = DIRECTION_DOWN;
-				}
-				if (this.field.byVec(this.snakeTailLocation).value == MARK_LEFT) {
-					this.snakeTailMove = DIRECTION_LEFT;
-				}
-				if (this.field.byVec(this.snakeTailLocation).value == MARK_RIGHT) {
-					this.snakeTailMove = DIRECTION_RIGHT;
-				}
-				this.field.byVec(this.snakeTailLocation).color = CELL_COLOR_EMPTY;
-				this.field.byVec(this.snakeTailLocation).value = 0;
+				this.snakeTailLocation = snakeCrawlingEngine(this.snakeTailLocation, this.snakeTailMove);
 			} else {
 				this.snakeFeedCondition = false;
-				this.snakeSize++;
 			}
+
+			/* Handle Tail */
+			if (this.field.byVec(this.snakeTailLocation).value == MARK_UP) {
+				this.snakeTailMove = DIRECTION_UP;
+			}
+			if (this.field.byVec(this.snakeTailLocation).value == MARK_DOWN) {
+				this.snakeTailMove = DIRECTION_DOWN;
+			}
+			if (this.field.byVec(this.snakeTailLocation).value == MARK_LEFT) {
+				this.snakeTailMove = DIRECTION_LEFT;
+			}
+			if (this.field.byVec(this.snakeTailLocation).value == MARK_RIGHT) {
+				this.snakeTailMove = DIRECTION_RIGHT;
+			}
+			this.field.byVec(this.snakeTailLocation).color = CELL_COLOR_EMPTY;
+			this.field.byVec(this.snakeTailLocation).value = 0;
 
 			/* Handle head */
 			if (this.field.byVec(this.snakeHeadLocation).value < 0 && this.snakeHeadMove != 0) {
 				this.snakeDeathCondition = true;
-				this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_RED;
 			} else {
 				if (this.field.byVec(this.snakeHeadLocation).value > 0 ) {
 					this.snakeFeedCondition = true;
