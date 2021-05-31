@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name     SnakeXenziaGithub
-// @namespace   https://github.com/daomatys/SnakeXenzia
-// @version     0.26
+// @name          SnakeXenziaGithub
+// @namespace     https://github.com/daomatys/SnakeXenzia
+// @version       0.26
 // @description   Github activity graph based game "Snake Xenzia"
-// @author     daomatys, oxore
-// @match     https://github.com/*
-// @grant     none
+// @author        daomatys, oxore
+// @match         https://github.com/*
+// @grant         none
 // ==/UserScript==
 
 const KEY_UP = 38
@@ -32,10 +32,7 @@ const CELL_COLOR_YELLOW = "#e6af4b"
 const CELL_COLOR_RED = "#e05038"
 
 class Vec {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
+  constructor(x, y) { this.x = x; this.y = y; }
 }
 
 const DIRECTION_UP = new Vec(0, -1);
@@ -45,9 +42,7 @@ const DIRECTION_RIGHT = new Vec(1, 0);
 
 
 class Cell {
-  constructor(rect) {
-    this.rect = rect;
-  }
+  constructor(rect) { this.rect = rect; }
 
   set color(color) { this.rect.style.fill = color; }
 
@@ -119,7 +114,6 @@ class Field {
 
     fieldComplete(rects);
     this.rects = rects;
-
     this.activate();
   }
 
@@ -233,7 +227,6 @@ class GithubActivityGraphController {
     }
 
     startButton.onClick = startButtonOnClick.bind(this);
-
   }
 
   get field() { return this.fld; }
