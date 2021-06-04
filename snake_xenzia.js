@@ -46,9 +46,9 @@ class Cell {
 
   set color(color) { this.rect.style.fill = color; }
 
-  get color() { return this.rect.style.fill }
-
   set value(value) { this.rect.setAttribute("data-count", value); }
+  
+  get color() { return this.rect.style.fill }
 
   get value() { return this.rect.getAttribute("data-count"); }
 
@@ -86,6 +86,7 @@ class Field {
   constructor(realGraphRects) {
     this.realGraphRects = realGraphRects;
     let rects = [];
+
     for (let i = 0; i < realGraphRects.length; i++) {
       rects[i] = realGraphRects[i].cloneNode();
       rects[i].className.baseVal = "dayfake";
@@ -172,6 +173,7 @@ class Field {
 
 class StartButton {
   constructor(buttonId, buttonText) {
+    
     let element = document.createElement("Button");
     element.appendChild(document.createTextNode(buttonText));
     element.classList.add("btn");
@@ -213,7 +215,10 @@ class GithubActivityGraphController {
         this.started = true;
         startButton.text = "Turn off";
 
-        this.fld = new Field(document.getElementsByClassName("js-calendar-graph-svg")[0].getElementsByClassName("ContributionCalendar-day"));
+        this.fld = new Field(document
+          .getElementsByClassName("js-calendar-graph-svg")[0]
+          .getElementsByClassName("ContributionCalendar-day"));
+
         this.fld.cellsOnClick = this.cellsOnClickCallback;
 
         onStartFunction(this);
@@ -276,6 +281,7 @@ class SnakeGame {
 
   crawl() {
     if (this.snakeDeathCondition == true) {
+      
       switch(this.snakeDeathAlert) {
         case true:
           this.field.byVec(this.snakeHeadLocation).color = CELL_COLOR_RED;
@@ -290,15 +296,12 @@ class SnakeGame {
     } else {
       function snakeCrawlingEngine(pos, move) {
         pos.x += move.x;
+        pos.x < 0 ? pos.x = FIELD_WIDTH - 1 : null;
+        pos.x > FIELD_WIDTH - 1 ? pos.x = 0 : null;
+        
         pos.y += move.y;
-        if (pos.x < 0)
-          pos.x = FIELD_WIDTH - 1;
-        if (pos.x > FIELD_WIDTH - 1)
-          pos.x = 0;
-        if (pos.y < 0)
-          pos.y = FIELD_HEIGHT - 1;
-        if (pos.y > FIELD_HEIGHT - 1)
-          pos.y = 0;
+        pos.y < 0 ? pos.y = FIELD_HEIGHT - 1 : null;
+        pos.y > FIELD_HEIGHT - 1 ? pos.y = 0 : null;
         return pos;
       }
 
@@ -313,19 +316,15 @@ class SnakeGame {
       if (this.field.byVec(this.snakeTailLocation).value == MARK_UP) {
         this.snakeTailMove = DIRECTION_UP;
       }
-      
       if (this.field.byVec(this.snakeTailLocation).value == MARK_DOWN) {
         this.snakeTailMove = DIRECTION_DOWN;
       }
-      
       if (this.field.byVec(this.snakeTailLocation).value == MARK_LEFT) {
         this.snakeTailMove = DIRECTION_LEFT;
       }
-      
       if (this.field.byVec(this.snakeTailLocation).value == MARK_RIGHT) {
         this.snakeTailMove = DIRECTION_RIGHT;
       }
-      
       this.field.byVec(this.snakeTailLocation).color = CELL_COLOR_EMPTY;
       this.field.byVec(this.snakeTailLocation).value = 0;
 
